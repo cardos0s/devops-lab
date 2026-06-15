@@ -45,5 +45,16 @@ curl http://demo.local/api
 
 > 🔐 O `db-secret.yaml` tem valor **fictício**. Gere o real com `kubectl create secret` ou use Sealed Secrets/SOPS.
 
+## Autoescalonamento (HPA)
+`api-hpa.yaml` e `web-hpa.yaml` escalam as réplicas automaticamente por CPU/memória (2→10 na API). Requer o **metrics-server** no cluster:
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+# no Kind: adicione --kubelet-insecure-tls ao deployment do metrics-server
+kubectl get hpa -n demo-app -w
+```
+
+## Observabilidade
+Stack de Prometheus + Grafana e o `ServiceMonitor` que coleta `/metrics` da API estão em [`../monitoring`](../monitoring).
+
 ## Versão Helm
-O mesmo app, parametrizado e empacotado, está em [`../helm/demo-app`](../helm/demo-app) — uma instalação no lugar de aplicar ~10 manifests à mão.
+O mesmo app, parametrizado e empacotado, está em [`../helm/demo-app`](../helm/demo-app) — uma instalação no lugar de aplicar ~12 manifests à mão.

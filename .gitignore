@@ -4,6 +4,13 @@
 *.key
 kubeconfig
 
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
 # OS / editor
 .DS_Store
 .vs/

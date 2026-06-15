@@ -1,0 +1,31 @@
+# Customização do kube-prometheus-stack para o lab (valores enxutos pro Kind).
+prometheus:
+  prometheusSpec:
+    retention: 7d                          # quanto tempo guarda métricas
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 512Mi }
+    # permite que ServiceMonitors de qualquer namespace sejam descobertos
+    serviceMonitorSelectorNilUsesHelmValues: false
+
+grafana:
+  # ATENÇÃO: senha de exemplo. Em produção use um Secret externo.
+  adminPassword: "admin-troque-isto"
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+  # sidecar que carrega dashboards a partir de ConfigMaps com o label abaixo
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 25m, memory: 64Mi }
+
+# componentes pesados desligados pra caber no Kind local
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true

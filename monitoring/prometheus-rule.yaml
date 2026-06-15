@@ -1,0 +1,42 @@
+# PrometheusRule — alertas baseados em expressões PromQL.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: demo-app-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  groups:
+    - name: demo-app.rules
+      rules:
+        - alert: ApiDown
+          expr: up{job="demo-app-api"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "API do demo-app fora do ar"
+            description: "Nenhum target da API respondendo há mais de 1 minuto."
+
+        - alert: ApiHighLatency
+          # p95 da latência das requisições acima de 500ms por 5 min
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(http_request_duration_seconds_bucket{job="demo-app-api"}[5m])) by (le)
+            ) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Latência alta na API (p95 > 500ms)"
+            description: "O p95 de latência passou de 500ms nos últimos 5 minutos."
+
+        - alert: PodRestartingTooMuch
+          expr: increase(kube_pod_container_status_restarts_total{namespace="demo-app"}[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod reiniciando demais em demo-app"
+            description: "Um container reiniciou mais de 3 vezes em 15 minutos."

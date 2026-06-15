@@ -1,0 +1,34 @@
+# HorizontalPodAutoscaler — escala o número de réplicas da API automaticamente
+# conforme o uso de CPU/memória. Requer o metrics-server instalado no cluster:
+#   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+#   (no Kind, adicione --kubelet-insecure-tls ao deployment do metrics-server)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: demo-app
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70      # escala quando CPU média passa de 70%
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:                            # evita "flapping" (escala nervosa)
+    scaleDown:
+      stabilizationWindowSeconds: 300  # espera 5 min de estabilidade antes de reduzir
+    scaleUp:
+      stabilizationWindowSeconds: 30

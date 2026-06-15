@@ -1,0 +1,20 @@
+# ServiceMonitor — CRD do Prometheus Operator que ensina o Prometheus
+# a descobrir e raspar /metrics da API do demo-app.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo-app-api
+  namespace: monitoring
+  labels:
+    release: monitoring        # casa com o selector do kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - demo-app
+  selector:
+    matchLabels:
+      app: api                 # o Service da API precisa ter este label
+  endpoints:
+    - port: http               # nome da porta no Service (8080)
+      path: /metrics
+      interval: 15s

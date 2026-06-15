@@ -30,9 +30,11 @@ O mesmo `demo-app` (frontend nginx + API .NET + Postgres) atravessa todas as se�
 |---|---|---|
 | ☸️ [**kubernetes/**](./kubernetes) | Cluster Kind + [recursos fundamentais](./kubernetes/basics) (Pod, Deployment, Service, ConfigMap, Secret, Ingress) documentados | Kind · kubectl · YAML |
 | 🐳 [**docker/**](./docker) | Imagens multi-stage (API .NET + web nginx) + stack local | Docker · Compose |
-| 🏗️ [**multi-tier-app/**](./multi-tier-app) | O `demo-app` completo no cluster (3 camadas, StatefulSet, Ingress) | Kubernetes |
-| ⎈ [**helm/**](./helm/demo-app) | O mesmo app empacotado e parametrizável | Helm |
+| 🏗️ [**multi-tier-app/**](./multi-tier-app) | O `demo-app` completo no cluster (3 camadas, StatefulSet, Ingress, **HPA**) | Kubernetes |
+| ⎈ [**helm/**](./helm/demo-app) | O mesmo app empacotado e parametrizável (com HPA) | Helm |
 | 🔄 [**.github/workflows/**](./.github/workflows) | Pipeline build → test → imagens → deploy | GitHub Actions · GHCR |
+| 🟦 [**terraform/**](./terraform) | Provisiona o cluster + ingress como código (IaC) | Terraform |
+| 📊 [**monitoring/**](./monitoring) | Prometheus + Grafana + alertas + dashboard | kube-prometheus-stack |
 
 ---
 
@@ -51,7 +53,7 @@ kubectl apply -f multi-tier-app/k8s/
 ```
 
 ## 💡 Conceitos cobertos
-Containerização e build multi-stage · orquestração (Pods, Deployments, StatefulSets) · rede e service discovery (Service, Ingress, CoreDNS) · configuração e segredos · armazenamento persistente (PVC) · empacotamento com Helm · entrega contínua (CI/CD) · infraestrutura como código.
+Containerização e build multi-stage · orquestração (Pods, Deployments, StatefulSets) · rede e service discovery (Service, Ingress, CoreDNS) · configuração e segredos · armazenamento persistente (PVC) · **autoescalonamento (HPA)** · empacotamento com Helm · entrega contínua (CI/CD) · **infraestrutura como código (Terraform)** · **observabilidade (Prometheus + Grafana)**.
 
 > 🔐 Todos os Secrets neste repositório usam valores **fictícios/placeholders**. Senhas reais são injetadas em deploy (env, `--set`, ou um cofre).
 

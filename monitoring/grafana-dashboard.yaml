@@ -1,0 +1,43 @@
+# Dashboard como código — o sidecar do Grafana carrega ConfigMaps com este label.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-app-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  demo-app.json: |
+    {
+      "title": "Demo App — Overview",
+      "uid": "demo-app",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "10s",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "API Up",
+          "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+          "targets": [
+            { "expr": "sum(up{job=\"demo-app-api\"})", "legendFormat": "targets up" }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Request rate (req/s)",
+          "gridPos": { "h": 8, "w": 9, "x": 6, "y": 0 },
+          "targets": [
+            { "expr": "sum(rate(http_requests_received_total{job=\"demo-app-api\"}[5m]))", "legendFormat": "requests" }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Latency p95 (s)",
+          "gridPos": { "h": 8, "w": 9, "x": 15, "y": 0 },
+          "targets": [
+            { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"demo-app-api\"}[5m])) by (le))", "legendFormat": "p95" }
+          ]
+        }
+      ]
+    }

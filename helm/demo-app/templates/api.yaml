@@ -18,7 +18,9 @@ metadata:
   labels:
     {{- include "demo-app.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.api.replicas }}
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicas }}    # ignorado quando o HPA está ativo
+  {{- end }}
   selector:
     matchLabels:
       app: api
@@ -66,5 +68,6 @@ spec:
   selector:
     app: api
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       targetPort: 8080
