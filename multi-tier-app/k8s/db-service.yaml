@@ -1,0 +1,14 @@
+# Service headless (clusterIP: None) — dá DNS estável aos pods do StatefulSet
+# (db-0.db.demo-app.svc.cluster.local) sem load balancing/IP virtual.
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: demo-app
+spec:
+  clusterIP: None
+  selector:
+    app: db
+  ports:
+    - port: 5432
+      targetPort: 5432

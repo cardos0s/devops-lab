@@ -1,0 +1,17 @@
+# ConfigMap — armazena configuração NÃO sensível (env vars, arquivos de config).
+# Permite mudar o comportamento da app sem rebuildar a imagem.
+# Consumido como variável de ambiente ou montado como arquivo (volume).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: lab
+data:
+  APP_ENV: "development"
+  LOG_LEVEL: "info"
+  WELCOME_MESSAGE: "Bem-vinda ao DevOps Lab"
+  # Também pode guardar arquivos inteiros:
+  index.html: |
+    <html>
+      <body><h1>Servido via ConfigMap</h1></body>
+    </html>

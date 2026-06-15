@@ -1,0 +1,9 @@
+# Namespace — isola recursos logicamente dentro do cluster.
+# Tudo relacionado a um app/ambiente pode viver no seu próprio namespace,
+# evitando colisão de nomes e facilitando quotas e RBAC por contexto.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lab
+  labels:
+    env: learning

@@ -1,0 +1,48 @@
+# Deployment — gerencia um ReplicaSet que mantém N réplicas de um Pod no ar.
+# Garante alta disponibilidade, rolling updates (sem downtime) e rollback.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: lab
+  labels:
+    app: nginx
+spec:
+  replicas: 3                      # mantém 3 pods sempre rodando
+  selector:
+    matchLabels:
+      app: nginx                   # quais pods este Deployment gerencia
+  strategy:
+    type: RollingUpdate            # atualiza gradualmente, sem derrubar tudo
+    rollingUpdate:
+      maxSurge: 1                   # 1 pod extra durante o update
+      maxUnavailable: 0            # nenhum pod indisponível durante o update
+  template:                        # molde dos pods criados
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          resources:               # requests/limits evitam que 1 pod sufoque o nó
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          readinessProbe:          # só recebe tráfego quando estiver pronto
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:           # reinicia o pod se travar
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10

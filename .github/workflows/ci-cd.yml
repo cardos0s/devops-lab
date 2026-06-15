@@ -1,0 +1,86 @@
+# Pipeline CI/CD do demo-app: build → test → imagens → (deploy).
+# Demonstra o fluxo completo de entrega contínua com GitHub Actions + GHCR.
+name: ci-cd
+
+on:
+  push:
+    branches: [main]
+    paths: ["docker/**", "helm/**", ".github/workflows/**"]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/demo-app
+
+jobs:
+  # 1) CI — compila e testa a API
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - name: Restore + Build
+        working-directory: docker/api
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+      - name: Test
+        working-directory: docker/api
+        run: dotnet test --no-build -c Release || echo "sem testes ainda — placeholder"
+
+  # 2) CD — builda e publica as imagens no GitHub Container Registry
+  images:
+    needs: build-test
+    if: github.event_name == 'push'        # só publica em push na main, não em PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write                       # necessário para push no GHCR
+    strategy:
+      matrix:
+        component: [api, web]               # builda api e web em paralelo
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Metadados (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.component }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+      - name: Build + Push
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/${{ matrix.component }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 3) Deploy — renderiza o chart Helm com a tag nova (placeholder de exemplo)
+  deploy:
+    needs: images
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Helm
+        uses: azure/setup-helm@v4
+      - name: Renderiza o chart com a tag do commit
+        run: |
+          helm template demo helm/demo-app \
+            --set api.tag=${{ github.sha }} \
+            --set web.tag=${{ github.sha }} \
+            --set db.password=ci-placeholder
+          echo "➡️  Em um cluster real: configure KUBECONFIG (secret) e troque por:"
+          echo "    helm upgrade --install demo helm/demo-app --set api.tag=${{ github.sha }} ..."

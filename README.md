@@ -1,40 +1,59 @@
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:326CE5,100:00D4FF&height=160&section=header&text=DevOps%20Lab&fontSize=48&fontColor=FFFFFF&fontAlignY=35&desc=Kubernetes%20%C2%B7%20Docker%20%C2%B7%20Infraestrutura%20como%20c%C3%B3digo&descSize=16&descAlignY=58&descColor=FFFFFF"/>
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:326CE5,100:00D4FF&height=160&section=header&text=DevOps%20Lab&fontSize=48&fontColor=FFFFFF&fontAlignY=35&desc=Kubernetes%20%C2%B7%20Docker%20%C2%B7%20Helm%20%C2%B7%20CI%2FCD%20%C2%B7%20IaC&descSize=16&descAlignY=58&descColor=FFFFFF"/>
 
 <p align="center">
-  Laboratório prático de <b>DevOps e infraestrutura</b> — clusters, containers, orquestração e IaC,<br/>
-  documentando o aprendizado feito 100% pelo terminal.
+  Laboratório prático de <b>DevOps e infraestrutura</b> — do container ao deploy contínuo,<br/>
+  tudo girando em torno de um app de exemplo real (<code>demo-app</code>: web + API + banco).
 </p>
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=kubernetes,docker,bash,git&perline=9" />
+  <img src="https://skillicons.dev/icons?i=kubernetes,docker,dotnet,githubactions,bash,git&perline=9" />
 </p>
 
 ---
 
-## 🧪 Áreas
+## 🧭 Trilha — do código ao cluster
 
-| Área | Conteúdo | Stack |
-|---|---|---|
-| ☸️ [Kubernetes](./kubernetes) | Cluster local com Kind, Pods, Deployments, Services, CoreDNS e Kindnet | Kind · kubectl · Docker · YAML |
+O mesmo `demo-app` (frontend nginx + API .NET + Postgres) atravessa todas as seções, mostrando o ciclo de vida completo:
 
-> 🌱 Repositório vivo — novas áreas de DevOps (CI/CD, Terraform, observabilidade) entram aqui conforme eu avanço.
-
----
-
-## ☸️ Kubernetes — destaque
-
-Jornada completa de **Kubernetes com Kind (Kubernetes in Docker)**: criação de cluster multi-nó, deploy de Nginx, rede interna (Kindnet/CoreDNS) e exposição de serviços — tudo como código.
-
-```bash
-# sobe um cluster local de 3 nós (1 control-plane + 2 workers)
-kind create cluster --config kubernetes/config.yaml
-
-# cria um pod e expõe
-kubectl apply -f kubernetes/pod.yaml
-kubectl get pods
+```
+   docker/  ──build──▶  imagens  ──push──▶  GHCR
+      │                                       │
+      │                              .github/workflows (CI/CD)
+      ▼                                       ▼
+ docker-compose                       multi-tier-app/  ◀──equivale──▶  helm/
+   (local)                              (manifests K8s)              (mesmo app, parametrizado)
 ```
 
-📖 O passo a passo completo e os conceitos estão em **[`kubernetes/README.md`](./kubernetes/README.md)**.
+## 📂 Seções
+
+| Seção | O que tem | Stack |
+|---|---|---|
+| ☸️ [**kubernetes/**](./kubernetes) | Cluster Kind + [recursos fundamentais](./kubernetes/basics) (Pod, Deployment, Service, ConfigMap, Secret, Ingress) documentados | Kind · kubectl · YAML |
+| 🐳 [**docker/**](./docker) | Imagens multi-stage (API .NET + web nginx) + stack local | Docker · Compose |
+| 🏗️ [**multi-tier-app/**](./multi-tier-app) | O `demo-app` completo no cluster (3 camadas, StatefulSet, Ingress) | Kubernetes |
+| ⎈ [**helm/**](./helm/demo-app) | O mesmo app empacotado e parametrizável | Helm |
+| 🔄 [**.github/workflows/**](./.github/workflows) | Pipeline build → test → imagens → deploy | GitHub Actions · GHCR |
+
+---
+
+## 🚀 Começando
+
+```bash
+# 1. cluster local de 3 nós
+kind create cluster --config kubernetes/config.yaml
+
+# 2. fundamentos do K8s
+kubectl apply -f kubernetes/basics/
+
+# 3. app completo (ou via Helm)
+kubectl apply -f multi-tier-app/k8s/
+# helm install demo helm/demo-app --set db.password=$(openssl rand -base64 24)
+```
+
+## 💡 Conceitos cobertos
+Containerização e build multi-stage · orquestração (Pods, Deployments, StatefulSets) · rede e service discovery (Service, Ingress, CoreDNS) · configuração e segredos · armazenamento persistente (PVC) · empacotamento com Helm · entrega contínua (CI/CD) · infraestrutura como código.
+
+> 🔐 Todos os Secrets neste repositório usam valores **fictícios/placeholders**. Senhas reais são injetadas em deploy (env, `--set`, ou um cofre).
 
 ---
 
